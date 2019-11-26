@@ -1706,8 +1706,9 @@ if isfield(expmt.hardware.projector,'reg_params')
         'and will not need to be adjusted after registration.'];
     item4 = ['4.) If using random dot registratio, ensure all (or nearly all) of the'...
         'projected image is within the camera FOV'];
+    item5 = ['5.) If using raster grid alt, ensure step size is large enough that all images will fit in memory'];
     closing = ['Click OK to continue with the registration'];
-    message = {intro spc item1 spc item2 spc item3 spc item4 spc closing};
+    message = {intro spc item1 spc item2 spc item3 spc item4 spc item5 spc closing};
 
     % Display registration tips
     waitfor(msgbox(message,msg_title));
