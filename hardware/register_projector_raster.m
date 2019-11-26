@@ -43,11 +43,8 @@ robot.mouseMove(1, 1);
 
 % Image spot with cam
 ref=peekdata(expmt.hardware.cam.vid,1);
-
-disp('reference gathered')
 if size(ref,3)>1
     ref=ref(:,:,2);
-    
 end
 
 % adjust image for lens distortion if camera calibration parameters exist
@@ -115,14 +112,14 @@ tic;
 tPrev = toc;
 
 while not_white
-    
+
     tCurr = toc;
     t = t + tCurr - tPrev;
     tPrev = tCurr;
     im = peekdata(expmt.hardware.cam.vid,1);
     lum = double(median(median(im(mid(1)-50:mid(1)+50,mid(2)-50:mid(2)+50,1))));
     not_white = abs(lum - black) < abs(lum - white);
-    
+
 end
 
 % black reference
@@ -150,10 +147,6 @@ handles.hImage = findobj(handles.gui_fig,'-depth',3,'Type','image');
 robot = java.awt.Robot;
 robot.mouseMove(1, 1);
 
-% Imarray to calculate median
-imarray=zeros([size(im), x_stp*y_stp], 'uint8');
-whos imarray im
-
 % Initialize both x and y to zero and raster the projector
 x=0;
 tic
@@ -161,7 +154,7 @@ tPrev = toc;
 for i=1:x_stp
     y=0;
     for j=1:y_stp
-        
+
         tCurr = toc;
         ifi = tCurr-tPrev;
         while ifi < 1/frameRate
@@ -169,68 +162,45 @@ for i=1:x_stp
             ifi = tCurr-tPrev;
         end
         tPrev = tCurr;
-        
+
         % Draw circle with projector at pixel coords x,y
         scr=drawCircles(x,y,r,white,scr);
         pause(delay);
-        
+
         % Image spot with cam
         im=peekdata(expmt.hardware.cam.vid,1);
         if size(im,3)>1
             im=im(:,:,2);
         end
-        
+
         % adjust image for lens distortion if camera calibration parameters exist
         if isfield(expmt.hardware.cam,'calibration') && expmt.hardware.cam.calibrate
             [im,~] = undistortImage(im,expmt.hardware.cam.calibration);
         end
 
-        %save image to immarray to take median image later and find dot
-        imarray(:,:, (i-1)*y_stp+j)=im;
-        
-        %%% RM addition for better reference
-        y = y + stp_sz;
-    end
-    % Advance x by stp_sz pixels
-    x = x + stp_sz;
-end
+        im=im-ref;
 
-ref=median(imarray, 3);
-
-x=0;
-for i=1:x_stp
-    y=0;
-    for j=1:y_stp
-        iCount=(i-1)*y_stp+j;
-        
-        
-        %%%
-        im=imarray(:,:,iCount)-ref;
-        
-        
-        
-        
-        
         % Extract Centroid of spot
         props=regionprops(im>im_thresh,'Centroid','Area');
         props=props([props.Area]>min_Area & [props.Area]<max_Area);
-        
+
         % Further process the Centroid if spot detected
         if ~isempty([props.Centroid]) && length([props.Centroid])==2
+
             % Calculate center of mass using roi detected for the spot
             cenDat=round([props.Centroid]);
             yi=cenDat(2)-subim_sz:cenDat(2)+subim_sz;
             xi=cenDat(1)-subim_sz:cenDat(1)+subim_sz;
             if max(yi)<reg_yPixels+1 && min(yi)>0 && max(xi)<reg_xPixels+1 && min(xi)>1
-                
+
                 subim=im(yi,xi);
                 subim=double(subim);
                 subim=subim./sum(sum(subim));
-                
+
                 % Save camera coordinates of the spot
                 cam_x(j,i)=sum(sum(subim).*xi);
                 cam_y(j,i)=sum(sum(subim,2).*yi');
-                
+
                 % Reset axes and display tracking
                 handles.hImage.CData = im>im_thresh;
                 hMark.XData = cam_x(j,i);
@@ -238,12 +208,12 @@ for i=1:x_stp
                 hText.Position = [cam_x(j,i),cam_y(j,i)+20];
                 hText.String = ['(' num2str(round(cam_x(j,i)*10)/10) ...
                     ',' num2str(round(cam_y(j,i)*10)/10) ')'];
-                
+
                 if strcmp(hMark.Visible,'off')
                     hMark.Visible = 'on';
                     hText.Visible = 'on';
                 end
-                
+
                 drawnow
             end
         else
@@ -254,14 +224,15 @@ for i=1:x_stp
             end
             drawnow
         end
-        
+
         % Save projector coordinates of spot
         proj_x(j,i)=x;
         proj_y(j,i)=y;
-        
+
         % Advance y by stp_sz pixels
         y = y + stp_sz;
-        
+        iCount=(i-1)*y_stp+j;
+
         iTime(mod(iCount,length(iTime))+1)=ifi;
         if iCount >= length(iTime)
             timeRemaining = round(mean(iTime)*(x_stp*y_stp-iCount));
@@ -269,15 +240,11 @@ for i=1:x_stp
         end
         clearvars im props subim
     end
-    
+
     % Advance x by stp_sz pixels
     x = x + stp_sz;
-    
+
 end
-
-% name=strcat(string(datetime('now', 'Format','yyyy-MM-dd-HH_mm')), 'imbundle');
-% save(name, 'imarray', 'proj_x', 'proj_y', 'cam_x', 'cam_y');
-
 
 % Image spot with cam
 hTitle.String = 'Registration complete';
@@ -290,18 +257,10 @@ cam_x=cam_x(include);
 cam_y=cam_y(include);
 
 % Create scattered interpolant and save to HDD
-% disp('Registering bug seems around here');
-% whos
-%disp(cam_x);
-%disp(cam_y);
-%disp(cam_z);
 interp_Fx=scatteredInterpolant(cam_x,cam_y,proj_x);
 inter_Fy=scatteredInterpolant(cam_x,cam_y,proj_y);
 
 [poly_Fx, poly_Fy] = fit_adjust_proj_models(cam_x, cam_y, proj_x, proj_y);
-disp('Fit worked')
-
-clearvars imarray
 
 reg_data.interp_Fx = interp_Fx;
 reg_data.interp_Fy = inter_Fy;
@@ -321,6 +280,9 @@ else
     save([handles.gui_dir 'hardware\projector_fit\projector_fit.mat'],'reg_data');
 end
 
+disp('Range if projector coordinates');
+disp(max(proj_x))
+disp(max(proj_y))
+
 % close open projector window
 sca
-

@@ -32,8 +32,8 @@ gui_State = struct('gui_Name',       mfilename, ...
                    'gui_OutputFcn',  @margo_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
-               
-               
+
+
 
 if nargin && ischar(varargin{1})
     gui_State.gui_Callback = str2func(varargin{1});
@@ -95,7 +95,7 @@ handles.cam_calibrate_menu.UserData = false;
 expmt.hardware.cam.calibrate = false;
 
 if exist(cam_dir,'dir')==7
-    
+
     cam_files = recursiveSearch(cam_dir);
     var_names = cell(length(cam_files),1);
     for i=1:length(cam_files)
@@ -104,7 +104,7 @@ if exist(cam_dir,'dir')==7
         load(cam_files{i});
     end
     allvars = whos;
-    
+
     if any(strcmp('cameraParameters',{allvars.class}))
         target_name = allvars(find(strcmp('cameraParameters',{allvars.class}),1,'first')).name;
         target_file = cellfun(@(x) strcmp(target_name,x),var_names,'UniformOutput',false);
@@ -112,7 +112,7 @@ if exist(cam_dir,'dir')==7
         param_obj = load(cam_files{target_file},target_name);
         expmt.hardware.cam.calibration = param_obj.(target_name);
     end
-    
+
 end
 
 % query ports and initialize COM objects
@@ -143,7 +143,7 @@ guidata(hObject,handles);
 % uiwait(handles.gui_fig);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = margo_OutputFcn(hObject, ~, handles) 
+function varargout = margo_OutputFcn(hObject, ~, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 
@@ -180,13 +180,13 @@ end
 if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
         ~strcmpi(cam_str{hObject.Value},'No camera adaptors installed') && ...
         ~isempty(handles.cam_list(hObject.Value).adaptor)
-    
+
     % get camera adaptor
     adaptor = handles.cam_list(hObject.Value).adaptor;
-    
+
     camInfo = imaqhwinfo(adaptor);
     deviceInfo = camInfo.DeviceInfo(handles.cam_list(hObject.Value).index);
-    
+
     set(handles.cam_mode_popupmenu,'String',deviceInfo.SupportedFormats);
     default_format = deviceInfo.DefaultFormat;
 
@@ -196,10 +196,10 @@ if ~strcmpi(cam_str{hObject.Value},'Camera not detected') &&...
             camInfo.ActiveMode = deviceInfo.SupportedFormats(i);
         end
     end
-    
+
     expmt.hardware.cam = camInfo;
     expmt.hardware.cam.activeID = handles.cam_list(get(hObject,'value')).index;
-    
+
 end
 
 % Store expmteriment data struct
@@ -218,7 +218,7 @@ function cam_select_popupmenu_CreateFcn(hObject,~,~)
 
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
-    
+
     set(hObject,'BackgroundColor','white');
 end
 
@@ -251,7 +251,7 @@ function cam_mode_popupmenu_CreateFcn(hObject,~,~)
 
 if ispc && isequal(get(hObject,'BackgroundColor'), ...
         get(0,'defaultUicontrolBackgroundColor'))
-    
+
     set(hObject,'BackgroundColor','white');
 end
 
@@ -267,23 +267,23 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         && isfield(expmt.hardware.cam,'DeviceInfo')
-    
+
     if ~isfield(expmt.hardware.cam,'DeviceInfo') ||...
             isempty(expmt.hardware.cam.DeviceInfo)
-        
+
         [expmt.hardware.cam,handles.cam_list] = ...
-            refresh_cam_list(handles);  
+            refresh_cam_list(handles);
     end
-    
+
     if ~isempty(expmt.hardware.cam.DeviceInfo)
-        
+
         if ~isfield(handles,'hImage') || isempty(handles.hImage) || ...
                 ~ishghandle(handles.hImage)
             bg_color = handles.gui_fig.Color;
             im = ones(9,16).*bg_color(1);
             handles.hImage = imagesc(im);
-            
-                           
+
+
 
             colormap(cmsat());
             handles.axes_handle.CLim = [0 1];
@@ -294,23 +294,23 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
             handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
             handles.gui_fig.Position(3) = handles.gui_fig.Position(3)-1;
         end
-        
+
         % query the Enable states of objects in the gui
         clean_gui(handles.axes_handle);
         on_objs = findobj('Enable','on');
         off_objs = findobj('Enable','off');
-        
+
         % disable all gui features during camera initialization
         set(findall(handles.gui_fig, '-property', 'Enable'), 'Enable', 'off');
         handles.disp_note.Enable='on';
-        
+
         handles.Cam_preview_togglebutton.Enable = 'off';
-        
+
         % display notifications
         note = gui_axes_notify(handles.axes_handle,'opening camera session');
         gui_notify('initializing camera',handles.disp_note);
         gui_notify('may take a few moments...',handles.disp_note);
-        
+
         % Clear old video objects
         imaqreset
         pause(0.2);
@@ -321,20 +321,20 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         cellfun(@delete,note);
         gui_notify('camera started, measuring frame rate...',handles.disp_note);
         drawnow
-        
+
         % Store expmteriment data struct
         setappdata(handles.gui_fig,'expmt',expmt);
         pause(0.2);
-        
+
         % measure frame rate
         [frame_rate, expmt.hardware.cam] = estimateFrameRate(expmt.hardware.cam);
         expmt.hardware.cam.frame_rate = frame_rate;
         expmt.parameters.target_rate = ceil(frame_rate);
         handles.edit_target_rate.String = sprintf('%i',ceil(frame_rate));
         expmt.parameters.max_trace_duration = ceil(frame_rate*0.5);
-        
+
         % adjust aspect ratio of plot to match camera
-                       
+
 
         colormap(cmsat());
         tic
@@ -365,7 +365,7 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
             case 'double'
                 expmt.hardware.cam.bitDepth = 64;
         end
-        
+
         clean_gui(handles.axes_handle);
         delete(handles.hImage);
         handles.hImage = imagesc(im,'Parent',handles.axes_handle);
@@ -377,23 +377,23 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         handles.gui_fig.Position(3) = handles.gui_fig.Position(3)+1;
         handles.gui_fig.Position(3) = handles.gui_fig.Position(3)-1;
 
-        
+
         % set the colormap and axes ticks
         set(gca,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[]);
-        
+
         % reset the Enable states of objects in the gui
         set(on_objs(ishghandle(on_objs)),'Enable','on');
         set(off_objs(ishghandle(off_objs)),'Enable','off');
         set(handles.display_menu.Children,'Enable','off');
         set(handles.display_menu.Children,'Checked','off');
         set_display_mode(handles.display_menu,'raw');
-        
+
         % set downstream UI panel Enable status
         handles.tracking_uipanel.ForegroundColor = [0 0 0];
         set(findall(handles.tracking_uipanel, '-property', 'Enable'), 'Enable', 'on');
         handles.distance_scale_menu.Enable = 'on';
         handles.vignette_correction_menu.Enable = 'on';
-        
+
         if ~isfield(expmt.meta.roi,'n') || ~expmt.meta.roi.n
             handles.track_thresh_slider.Enable = 'off';
             handles.accept_track_thresh_pushbutton.Enable = 'off';
@@ -401,11 +401,11 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
             handles.track_thresh_label.Enable = 'off';
             handles.disp_track_thresh.Enable = 'off';
         end
-        
+
         if ~isfield(expmt.meta.ref,'im')
             handles.sample_noise_pushbutton.Enable = 'off';
         end
-        
+
         % re-initialize ExperimentData obj
         if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
             expmt = reInitialize(expmt);
@@ -414,25 +414,25 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
             note = 'ROIs, references, and noise statistics reset';
             gui_notify(note,handles.disp_note);
         end
-        
+
         gui_notify('cam settings confirmed',handles.disp_note);
         note = ['frame rate measured at ' ...
             num2str(round(frame_rate*100)/100) 'fps'];
         gui_notify(note, handles.disp_note);
         note = ['resolution: ' num2str(res(1)) ' x ' num2str(res(2))];
         gui_notify(note, handles.disp_note);
-        
+
         handles.Cam_preview_togglebutton.Enable = 'on';
-        
+
         if expmt.hardware.cam.bitDepth ~= 8
             errordlg([num2str(expmt.hardware.cam.bitDepth) ...
                 '-bit image mode detected. Only 8-bit image modes are supported'],...
                 'Unsupported Camera Mode');
         end
-        
+
         % store a sample image
         expmt.meta.sample_im = im;
-        
+
     else
         errordlg('Settings not confirmed, no camera detected');
     end
@@ -465,13 +465,13 @@ switch get(hObject,'value')
         if ~isempty(expmt.hardware.cam) && ~isfield(expmt.hardware.cam, 'vid')
             errordlg('Please confirm camera settings')
             hObject.Value = 0;
-            
+
         elseif isfield(expmt.hardware.cam, 'vid') && ...
                 ~isvalid(expmt.hardware.cam.vid)
-            
+
             set(hObject,...
                 'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
-            
+
             % Clear old video objects
             imaqreset
             pause(0.1);
@@ -485,27 +485,27 @@ switch get(hObject,'value')
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
-            
-            
+
+
         elseif isfield(expmt.hardware.cam, 'vid') && ...
                 strcmp(expmt.hardware.cam.vid.Running,'off')
-            
+
             set(hObject,...
                 'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
-            
+
             set(handles.display_menu.Children,'Enable','on');
             hPreview = preview(expmt.hardware.cam.vid,handles.hImage);
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
-            
+
         elseif isfield(expmt.hardware.cam, 'vid') && ...
                 strcmp(expmt.hardware.cam.vid.Running,'on')
-            
+
             set(hObject,'string','Stop preview','BackgroundColor',[0.8 0.45 0.45]);
             stoppreview(expmt.hardware.cam.vid);
             if isempty(handles.hImage)
-                
+
                 % Take single frame
                 if strcmp(expmt.meta.source,'camera')
                     trackDat.im = peekdata(expmt.hardware.cam.vid,1);
@@ -518,32 +518,32 @@ switch get(hObject,'value')
                 if size(trackDat.im,3)>1
                     trackDat.im = trackDat.im(:,:,2);
                 end
-                
+
                 delete(findobj(handles.axes_handle,'-depth',3,'Type','image'));
                 handles.hImage = ...
                     imagesc('Parent',handles.axes_handle,'CData',trackDat.im);
-                               
+
 
                 colormap(handles.axes_handle,sat);
-                
+
             end
-            
+
             set(handles.display_menu.Children,'Enable','on');
             hPreview = preview(expmt.hardware.cam.vid,handles.hImage);
             setappdata(hPreview,'UpdatePreviewWindowFcn',@autoPreviewUpdate);
             setappdata(hPreview,'gui_handles',handles);
             setappdata(hPreview,'expmt',expmt);
-            
+
         end
     case 0
         if ~isempty(expmt.hardware.cam) && isfield(expmt.hardware.cam,'vid')
-            stoppreview(expmt.hardware.cam.vid);           
-            
+            stoppreview(expmt.hardware.cam.vid);
+
             if size(handles.hImage.CData,3) > 1
                 CData = handles.hImage.CData(:,:,2);
-            else 
+            else
                 CData = handles.hImage.CData;
-            end          
+            end
             delete(handles.hImage);
             handles.hImage = ...
                 imagesc('Parent',handles.axes_handle,'CData',CData);
@@ -571,7 +571,7 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value},'No COM detected')
-  disp('Bug is here')  
+  disp('Bug is here')
 % %     if strcmp(expmt.hardware.COM.light.status,'open')
 % %         fclose(expmt.hardware.COM.light);
 % %     end
@@ -661,10 +661,10 @@ if exist(default_path,'dir') ~= 7
     msg_title = 'New Data Path';
     message = ['margo has automatically generated a new default directory'...
         ' for data in ' default_path];
-    
+
     % Display info
     waitfor(msgbox(message,msg_title));
-end    
+end
 
 [fpath]  =  uigetdir(default_path,'Select a save destination');
 expmt.meta.path.full = fpath;
@@ -832,7 +832,7 @@ elseif any(strcmp(expmt.meta.name,handles.parameter_subgui)) &&...
     return
 end
 
-    
+
 try
     % disable controls that are not to be accessed while expmt is running
     toggleSubguis(handles,'off');
@@ -844,7 +844,7 @@ try
         strcmpi(expmt.meta.name,e.name),handles.experiments));
     expmt = feval(handles.experiments(exp_idx).run, expmt, handles);
     expmt = autoFinish(expmt,handles);
-    
+
     % run post-processing
     if ~expmt.meta.finish
         keep_gui_state = true;
@@ -877,7 +877,7 @@ try
 
 % re-establish gui state prior to tracking error is encountered
 catch ME
-    
+
     % update db_lab server if applicable
     if isfield(handles,'deviceID')
         try
@@ -890,22 +890,22 @@ catch ME
                 ' http://lab.debivort.org'],handles.disp_note);
         end
     end
-    
+
     % try to close any open PTB windows
     try
         sca;
     catch
     end
-    
+
     % get error report
     gui_notify('error encountered - tracking stopped',handles.disp_note);
     keep_gui_state = true;
     title = 'Error encountered - tracking stopped';
     msg=getReport(ME,'extended','hyperlinks','off');
- 
+
     % update meta data and output log file
     expmt = autoFinish_error(expmt, handles, msg);
-    
+
     % report error to the GUI
     errordlg(msg,title);
 end
@@ -921,12 +921,12 @@ if isfield(handles,'deviceID')
         gui_notify('unable to connect to http://lab.debivort.org',handles.disp_note);
     end
 end
-    
+
 % re-Enable control set to off during experiment
 toggleSubguis(handles,'on');
 toggleMenus(handles,'on');
 set_display_mode(handles.display_menu,'raw');
-      
+
 % remove saved rois, images, and noise statistics from prev experiment
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n && ~keep_gui_state
 
@@ -955,13 +955,13 @@ elseif keep_gui_state
 
     % restore gui to prior state
     set(handles.on_objs(isvalid(handles.on_objs)),'Enable','on');
-    set(handles.off_objs(isvalid(handles.off_objs)),'Enable','off');   
+    set(handles.off_objs(isvalid(handles.off_objs)),'Enable','off');
 end
-    
+
 % reset initialization
 expmt.meta.initialize = true;
 expmt.meta.finish = true;
-        
+
 % Store expmteriment data struct
 setappdata(handles.gui_fig,'expmt',expmt);
 
@@ -1073,9 +1073,9 @@ function exp_parameter_pushbutton_Callback(hObject, ~, handles)
 % import expmteriment data struct
 expmt = getappdata(handles.gui_fig,'expmt');
 
-idx = find(arrayfun(@(e) strcmpi(e.name,expmt.meta.name), handles.experiments));    
+idx = find(arrayfun(@(e) strcmpi(e.name,expmt.meta.name), handles.experiments));
 if ~isempty(handles.experiments(idx).sub_gui)
-    
+
     tmp_param = feval(handles.experiments(idx).sub_gui,expmt);
     if ~isempty(tmp_param)
         expmt = tmp_param;
@@ -1235,17 +1235,17 @@ if any(FileName)
     if replace
         profile_name = FileName(1:strfind(FileName,'.mat')-1);
         profiles = get(handles.param_prof_popupmenu,'string');
-        
+
         for i = 1:length(profiles)
             if strcmp(profile_name,profiles{i})
                 ri = i;
             end
         end
-        
+
         profiles(ri) = {profile_name};
         set(handles.param_prof_popupmenu,'string',profiles);
         set(handles.param_prof_popupmenu,'value',ri);
-        
+
     else
         profile_name = FileName(1:strfind(FileName,'.mat')-1);
         profiles = get(handles.param_prof_popupmenu,'string');
@@ -1290,18 +1290,18 @@ set(handles.display_menu.Children,'Enable','on');
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     try
-        
+
         expmt.meta.initialize = false;
         expmt = initializeRef(handles,expmt);
         handles.sample_noise_pushbutton.Enable = 'on';
-        
+
         % enable experimental controls if noise sampling disabled
         if isfield(expmt.parameters,'noise_sample') && ...
                 ~expmt.parameters.noise_sample
             % Enable downstream controls
             handles.exp_uipanel.ForegroundColor = [0 0 0];
             state = handles.exp_parameter_pushbutton.Enable;
-            ctls = findall(handles.exp_uipanel, '-property', 'Enable'); 
+            ctls = findall(handles.exp_uipanel, '-property', 'Enable');
             set(ctls, 'Enable', 'on');
             handles.exp_parameter_pushbutton.Enable = state;
 
@@ -1354,7 +1354,7 @@ if ~isfield(expmt.meta.ref,'im')
     return
 end
 
-try   
+try
     switch expmt.meta.source
         case 'video'
             expmt.meta.video.current_frame = 1;
@@ -1374,13 +1374,13 @@ try
     set(ref_ctls,'Enable','on');
     handles.edit_ref_depth.Enable = 'off';
     set(handles.display_menu.Children,'Enable','on');
-        
+
     expmt = sampleNoise(handles,expmt);
 
     % Enable downstream controls
     handles.exp_uipanel.ForegroundColor = [0 0 0];
     state = handles.exp_parameter_pushbutton.Enable;
-    ctls = findall(handles.exp_uipanel, '-property', 'Enable'); 
+    ctls = findall(handles.exp_uipanel, '-property', 'Enable');
     set(ctls, 'Enable', 'on');
     handles.exp_parameter_pushbutton.Enable = state;
 
@@ -1437,7 +1437,7 @@ switch expmt.meta.source
     case 'video'
         if ~isfield(expmt.meta,'video') || ...
                 ~isfield(expmt.meta.video,'vid')
-            
+
                 errordlg(['Select valid video path before'...
                     'running ROI detection']);
             return
@@ -1448,7 +1448,7 @@ end
 
 
 % run ROI detection
-%try     
+%try
     expmt.meta.initialize = false;
     toggleMenus(handles, 'off');
     togglePanels(handles, 'off', {'vid';'cam'});
@@ -1456,20 +1456,20 @@ end
     enable_states = get(tracking_uictls,'Enable');
     set(tracking_uictls,'Enable','off');
     handles.accept_ROI_thresh_pushbutton.Enable = 'on';
-    
+
     switch expmt.parameters.roi_mode
 
-        case 'auto'   
+        case 'auto'
         % run automatic ROI detections
         handles.ROI_thresh_slider.Enable = 'on';
         handles.disp_ROI_thresh.Enable = 'on';
         handles.ROI_thresh_label.Enable = 'on';
         expmt.meta.roi.mode = 'auto';
         expmt = autoROIs(handles,expmt);
-    
-        case 'grid'    
+
+        case 'grid'
         expmt.meta.roi.mode = 'grid';
-        expmt = gridROIs(handles,expmt);   
+        expmt = gridROIs(handles,expmt);
         if ~isfield(expmt.meta.roi,'centers') || isempty(expmt.meta.roi.centers)
             msg = 'grid ROI detection aborted';
             gui_notify(msg,handles.disp_note);
@@ -1478,9 +1478,9 @@ end
             set(tracking_uictls(strcmp(enable_states,'on')),'Enable','on');
             return
         end
-            
+
     end
-    
+
     % Enable downstream ui controls
     handles.track_thresh_slider.Enable = 'on';
     handles.edit_area_maximum.Enable = 'on';
@@ -1491,7 +1491,7 @@ end
     handles.track_thresh_label.Enable = 'on';
     handles.disp_track_thresh.Enable = 'on';
     handles.man_edit_roi_menu.Enable = 'on';
-    
+
     % query the Enable states of objects in the gui
     on_objs = findobj('Enable','on');
 
@@ -1500,12 +1500,12 @@ end
     handles.disp_note.Enable='on';
     gui_notify('initializing ROI masks, may take a few moments',handles.disp_note);
     drawnow
-   
+
     % get an pixel mask for all areas of the image with an ROI
     if isfield(expmt.meta.roi,'centers')
         expmt.meta.roi.n = size(expmt.meta.roi.centers,1);
         expmt = setROImask(expmt);
-        
+
         if ~isfield(expmt.meta.roi,'num_traces')
             expmt.meta.roi.num_traces = ...
                 repmat(expmt.parameters.traces_per_roi, expmt.meta.roi.n, 1);
@@ -1517,13 +1517,13 @@ end
                 [expmt.meta.roi.num_traces; ...
                 repmat(expmt.parameters.traces_per_roi, ...
                 expmt.meta.roi.n-numel(expmt.meta.roi.num_traces), 1)];
-            
+
         end
     end
-    
+
     % re-enable controls
     set(on_objs(ishghandle(on_objs)), 'Enable', 'on');
-    
+
 % catch ME
 %     hObject.Enable = 'on';
 %     msg=getReport(ME,'extended');
@@ -1718,8 +1718,10 @@ if isfield(expmt.hardware.projector,'reg_params')
             register_projector_raster(expmt,handles);
         case 'random dots'
             register_projector_random(expmt,handles);
+        case 'raster grid alt'
+            register_projector_raster_alt(expmt,handles);
     end
-    
+
 
     % Reset infrared and white lights to prior values
     writeInfraredWhitePanel(expmt.hardware.COM.light,1,...
@@ -1782,7 +1784,7 @@ expmt = getappdata(handles.gui_fig,'expmt');
 
 if exist([handles.gui_dir 'hardware/projector_fit/'],'dir') == 7 &&...
         isfield(expmt.hardware.projector,'reg_params')
-    
+
     % Turn infrared and white background illumination off during registration
     expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,1,0);
     expmt.hardware.COM.light = writeInfraredWhitePanel(expmt.hardware.COM.light,0,0);
@@ -1851,26 +1853,26 @@ if (isfield(expmt.hardware.cam,'vid') && ...
     % query next frame and optionally correct lens distortion
     trackDat = [];
     [~,expmt] = autoFrame(trackDat,expmt,handles);
-    
+
 elseif (isfield(expmt.hardware.cam,'vid') && ...
         strcmp(expmt.hardware.cam.vid.Running,'off'))
 
     % restart camera
     start(expmt.hardware.cam.vid);
-    
+
     % query next frame and optionally correct lens distortion
     trackDat = [];
-    [~,expmt] = autoFrame(trackDat,expmt,handles); 
-    
+    [~,expmt] = autoFrame(trackDat,expmt,handles);
+
 end
 
 tmp=setDistanceScale_subgui(handles,expmt.parameters);
 delete(findobj('Tag','imline'));
 if ~isempty(tmp)
-    
+
     expmt.parameters.distance_scale = tmp;
     p = expmt.parameters;
-    
+
     % update speed, distance, and area thresholds
     p.speed_thresh = p.speed_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
     p.distance_thresh = p.distance_thresh .* tmp.mm_per_pixel ./ p.mm_per_pix;
@@ -1878,7 +1880,7 @@ if ~isempty(tmp)
     p.area_max = p.area_max .* ((tmp.mm_per_pixel./p.mm_per_pix)^2);
     p.mm_per_pix = tmp.mm_per_pixel;
     expmt.parameters = p;
-    
+
     handles.edit_area_maximum.String = num2str(p.area_max,2);
     handles.edit_area_minimum.String = num2str(p.area_min,2);
     if expmt.parameters.mm_per_pix ~= 1
@@ -1906,7 +1908,7 @@ function gui_fig_SizeChangedFcn(hObject, ~, handles)
 % calculate delta width and height
 
 if isfield(handles,'fig_size')
-    
+
     dh = handles.fig_size(4) - hObject.Position(4);
 
     % adjust panel position to be constant
@@ -1925,7 +1927,7 @@ if isfield(handles,'fig_size')
     if handles.disp_note.UserData(4) - dh > 0
             handles.disp_note.Position(4) = handles.disp_note.UserData(4) - dh;
     end
-    
+
     handles.hImage = findobj(handles.axes_handle,'-depth',3,'Type','Image');
     if ~isempty(handles.hImage)
 
@@ -1945,14 +1947,14 @@ if isfield(handles,'fig_size')
         pbr = plot_aspect(2)/plot_aspect(1);
         fscale = aspectR/pbr;
         fscale(isnan(fscale))=1;
-        
-        
+
+
         axes_height_old = handles.axes_handle.Position(4);
         axes_height_new = axes_height_old*fscale;
-        
+
         if axes_height_new + handles.fig_size(4)*0.005 > ...
                 handles.gui_fig.Position(4)
-     
+
             aspectR = res(1)/res(2);
             plot_aspect = pbaspect(handles.axes_handle);
             plot_aspect = plot_aspect./plot_aspect(2);
@@ -1961,13 +1963,13 @@ if isfield(handles,'fig_size')
             axes_width_old = handles.axes_handle.Position(3);
             axes_width_new = axes_width_old*fscale;
             handles.axes_handle.Position(3) = axes_width_new;
-            
-        else          
+
+        else
             handles.axes_handle.Position(4) = axes_height_new;
-            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;           
+            handles.axes_handle.Position(2) = handles.axes_handle.Position(2) + axes_height_old - axes_height_new;
         end
         handles.axes_handle.XTick = [];
-        handles.axes_handle.YTick = [];     
+        handles.axes_handle.YTick = [];
     end
 
 end
@@ -2004,7 +2006,7 @@ var_names = fieldnames(all_vars);
 for i=1:numel(var_names)
     tmp_var = all_vars.(var_names{i});
     if strcmpi(class(tmp_var),'ExperimentData')
-       expmt = tmp_var; 
+       expmt = tmp_var;
     end
 end
 
@@ -2017,7 +2019,7 @@ end
 expmt = load_settings(expmt,expmt_new,handles);
 
 % save loaded settings to master struct
-setappdata(gui_fig,'expmt',expmt);  
+setappdata(gui_fig,'expmt',expmt);
 
 guidata(hObject,handles);
 
@@ -2039,12 +2041,12 @@ end
 expmt = getappdata(handles.gui_fig,'expmt');
 
 if isfield(expmt.meta.video,'vid')
-    
+
     % initialize axes and image settings
     if hObject.Value
-        
+
         % adjust aspect ratio of plot to match camera
-                       
+
 
         colormap(cmsat());
         if isfield(expmt.meta.video,'fID')
@@ -2059,26 +2061,26 @@ if isfield(expmt.meta.video,'vid')
         gui_fig_SizeChangedFcn(handles.gui_fig,[],handles);
         handles.hImage.CDataMapping = 'scaled';
         drawnow
-        
+
     end
-        
+
     % stream frames to the axes until the preview button is unticked
     setappdata(handles.hImage,'gui_handles',handles);
     setappdata(handles.hImage,'expmt',expmt);
-    while hObject.Value 
+    while hObject.Value
         tic
-        
+
         % get next frame and update image
         [event.Data, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
-        
+
         autoPreviewUpdate([], event, handles.hImage)
-        
+
         % update frame rate and frames remaining
         handles.edit_frame_rate.String = sprintf('%.1f',1/toc);
         handles.edit_time_remaining.String = ...
             sprintf('%i',mod(expmt.meta.video.nFrames - ...
             expmt.meta.video.current_frame,expmt.meta.video.nFrames));
- 
+
     end
 else
     errordlg('No video file path specified')
@@ -2143,12 +2145,12 @@ tmp_video = uigetvids(expmt);
 
 % update gui with video info
 if ~isempty(tmp_video)
-    
+
     % update video panel UI and image handles
     expmt.meta.video = tmp_video;
     expmt = guiInitializeVideo(expmt, handles);
     gui_fig_SizeChangedFcn(handles.gui_fig, [], handles);
-    
+
 end
 
 % set expmt data struct
@@ -2225,7 +2227,7 @@ if strcmp(expmt.meta.source,'camera')
     handles.vid_select_popupmenu.Enable = 'off';
     handles.vid_preview_togglebutton.Enable = 'off';
     handles.select_video_label.Enable = 'off';
-    
+
     if isfield(expmt.meta,'video') && isfield(expmt.meta.video,'vid')
         handles.ROI_thresh_slider.Enable = 'on';
         handles.accept_ROI_thresh_pushbutton.Enable = 'on';
@@ -2233,7 +2235,7 @@ if strcmp(expmt.meta.source,'camera')
         handles.auto_detect_ROIs_pushbutton.Enable = 'on';
         handles.text_object_num.Enable = 'on';
         handles.edit_object_num.Enable = 'on';
-    end      
+    end
 end
 
 if strcmp(handles.vid_uipanel.Visible,'off')
@@ -2269,7 +2271,7 @@ vid = true;
 
 % Setup the camera and/or video object
 if strcmp(expmt.meta.source,'camera') && strcmp(expmt.hardware.cam.vid.Running,'off')
-    
+
     % Clear old video objects
     imaqreset
     pause(0.2);
@@ -2278,14 +2280,14 @@ if strcmp(expmt.meta.source,'camera') && strcmp(expmt.hardware.cam.vid.Running,'
     expmt.hardware.cam = initializeCamera(expmt.hardware.cam);
     start(expmt.hardware.cam.vid);
     pause(0.1);
-    
-elseif strcmp(expmt.meta.source,'video') 
-    
+
+elseif strcmp(expmt.meta.source,'video')
+
     % open video object from file
     expmt.meta.video.vid = ...
         VideoReader([expmt.meta.video.fdir ...
             expmt.meta.video.fnames{handles.vid_select_popupmenu.Value}]);
-    
+
     expmt.meta.video.ct = handles.vid_select_popupmenu.Value;    % get file number in list
 
 elseif ~strcmp(expmt.hardware.cam.vid.Running,'on')
@@ -2295,19 +2297,19 @@ end
 
 
 if vid
-    
+
     % Take single frame
     if strcmp(expmt.meta.source,'camera')
         im = peekdata(expmt.hardware.cam.vid,1);
     else
         [im, expmt.meta.video] = nextFrame(expmt.meta.video,handles);
     end
-    
+
     % extract green channel if format is RGB
     if size(im,3)>1
         im = im(:,:,2);
     end
-    
+
     % if an image already exists, display a preview of the vignette correction
     set_display_mode(handles.display_menu,'raw');
     imh = findobj(handles.axes_handle,'-depth',3,'Type','image');
@@ -2316,7 +2318,7 @@ if vid
     event.Data = im;
     autoPreviewUpdate([], event, imh)
 
-    
+
     % display instructions
     msg = ['Click and drag to draw a rectangle to select a dimly lit ROI or '...
         'region within an ROI. For best results, make sure the selection is '...
@@ -2329,7 +2331,7 @@ if vid
     roi(3) = roi(1) + roi(3);
     roi(4) = roi(2) + roi(4);
     roi = round(roi);
-    
+
     % get adaptive threshold value using otsu's method
     thresh = graythresh(im(roi(2):roi(4),roi(1):roi(3)));
     tmpim = double(im);
@@ -2337,14 +2339,14 @@ if vid
     expmt.meta.vignette.im =filterVignetting(expmt,roi,tmpim);
     expmt.meta.vignette.im = uint8(expmt.meta.vignette.im);
     expmt.meta.vignette.mode = 'manual';
-    
-    
+
+
     event.Data = im - expmt.meta.vignette.im;
     autoPreviewUpdate([], event, imh)
     gui_notify('previewing vignette correction image',handles.disp_note);
     handles.display_none_menu.UserData = ...
         gui_axes_notify(handles.axes_handle,'Vignette Correction Preview');
-        
+
 end
 
 % set expmt data struct
@@ -2382,7 +2384,7 @@ save_path = [handles.gui_dir 'profiles/'];
 [FileName,PathName] = uiputfile('*.mat','Enter name for new profile',save_path);
 
 if any(FileName)
-    
+
     replace = exist(strcat(PathName,FileName),'file')==2;
     save(strcat(PathName,FileName),'expmt');
 
@@ -2410,7 +2412,7 @@ function aux_com_menu_Callback(hObject,~,handles)
 function refresh_COM_menu_Callback(hObject, ~, handles)
 
 % load master data struct
-expmt = getappdata(handles.gui_fig,'expmt');                    
+expmt = getappdata(handles.gui_fig,'expmt');
 
 % generate menu items for AUX COMs and config their callbacks
 hParent = findobj('Tag','aux_com_menu');
@@ -2431,7 +2433,7 @@ gui_notify('COM ports refreshed',handles.disp_note);
 
 
 % save loaded settings to master struct
-setappdata(handles.gui_fig,'expmt',expmt);  
+setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
 
@@ -2440,11 +2442,11 @@ function refresh_cam_menu_Callback(hObject, ~, handles)
 
 % display warning and ask user whether or not to reset cam
 expmt = getappdata(handles.gui_fig,'expmt');
-refresh = warningbox_subgui('title', 'Camera Reset');     
+refresh = warningbox_subgui('title', 'Camera Reset');
 
 % reset cameras and refresh gui lists
 if strcmp(refresh,'OK')
-    [expmt.hardware.cam, handles.cam_list] = refresh_cam_list(handles);          
+    [expmt.hardware.cam, handles.cam_list] = refresh_cam_list(handles);
 end
 
 % save loaded settings to master struct
@@ -2503,12 +2505,12 @@ function view_roi_bounds_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 switch hObject.Checked
-    
+
     case 'off'
 
         if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n &&...
                 strcmp(expmt.parameters.roi_mode,'auto')
-            
+
             hObject.Checked = 'on';
             hold(handles.axes_handle,'on');
             for i =1:length(expmt.meta.roi.centers)
@@ -2517,15 +2519,15 @@ switch hObject.Checked
                         expmt.meta.roi.bounds(i,:),'EdgeColor','r');
             end
             hold(handles.axes_handle,'off');
-            
+
         elseif isfield(expmt.meta.roi,'n') && expmt.meta.roi.n &&...
                 strcmp(expmt.parameters.roi_mode,'grid')
-            
+
             hObject.Checked = 'on';
             g = handles.add_ROI_pushbutton.UserData.grid;
             xdat=[];
             ydat=[];
-            for i=1:length(g)                
+            for i=1:length(g)
                 xdat = [xdat g(i).XData];
                 ydat = [ydat g(i).YData];
             end
@@ -2535,11 +2537,11 @@ switch hObject.Checked
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
-        
+
     case 'on'
-        
+
         hObject.Checked = 'off';
-        
+
         if isfield(handles.view_menu.UserData,'hBounds')
             f=isvalid(handles.view_menu.UserData.hBounds);
             set(handles.view_menu.UserData.hBounds(f),'Visible','off');
@@ -2555,9 +2557,9 @@ function view_roi_num_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 switch hObject.Checked
-    
+
     case 'off'
-        
+
         if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
             hObject.Checked = 'on';
             hold on
@@ -2572,11 +2574,11 @@ switch hObject.Checked
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
-        
+
     case 'on'
-        
+
         hObject.Checked = 'off';
-        
+
         if isfield(handles.view_menu.UserData,'hNum')
             h_valid = isvalid(handles.view_menu.UserData.hNum);
             arrayfun(@(h) delete(h),handles.view_menu.UserData.hNum(h_valid));
@@ -2591,7 +2593,7 @@ function view_roi_ori_menu_Callback(hObject, ~, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 switch hObject.Checked
-    
+
     case 'off'
 
         if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
@@ -2613,11 +2615,11 @@ switch hObject.Checked
         else
             gui_notify('ROIs are not set and cannot be displayed',handles.disp_note);
         end
-        
+
     case 'on'
-        
+
         hObject.Checked = 'off';
-        
+
         if isfield(handles.view_menu.UserData,'hOri')
             set(handles.view_menu.UserData.hOri,'Visible','off');
         end
@@ -2629,7 +2631,7 @@ function view_ref_cen_menu_Callback(hObject, eventdata, handles)
 expmt = getappdata(handles.gui_fig,'expmt');
 
 switch hObject.Checked
-    
+
     case 'off'
         hObject.Checked = 'on';
         if isfield(handles.view_menu.UserData,'hRefCen') &&...
@@ -2651,7 +2653,7 @@ switch hObject.Checked
             handles.view_menu.UserData.hRefCen = plot(ah,x,y,'mo','Linewidth',1.5);
             hold off
         end
-        
+
     case 'on'
         hObject.Checked = 'off';
         if isfield(handles.view_menu.UserData,'hRefCen') &&...
@@ -2685,7 +2687,7 @@ handles.gui_fig.UserData.edit_rois = true;
 guidata(hObject,handles);
 
 if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
-    
+
      % Take single frame
     if strcmp(expmt.meta.source,'camera')
         trackDat = [];
@@ -2698,16 +2700,16 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     if size(trackDat.im,3)>1
         trackDat.im = trackDat.im(:,:,2);
     end
-    
+
     % set display to ROI image and label ROIs
     handles.hImage.CData = trackDat.im;
     handles.axes_handle.CLim = [0 255];
-    
+
     feval(handles.view_roi_bounds_menu.Callback,...
             handles.view_roi_bounds_menu,[]);
     feval(handles.view_roi_num_menu.Callback,...
         handles.view_roi_num_menu,[]);
-    
+
     instructions = {'Right-click in an existing ROI to delete it'...
     ['Left-click to switch tool to draw tool, '...
     'then left-click and drag to define new ROI'] ...
@@ -2716,29 +2718,29 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
     cellfun(@(h) uistack(h,'up'), hNote);
 
     while handles.gui_fig.UserData.edit_rois
-        
+
         pause(0.001);
-        
+
         % listen for mouse clicks
         if isfield(handles.gui_fig.UserData,'click')
-            
+
             % get click info
             b = handles.gui_fig.UserData.click.button;
             c = handles.gui_fig.UserData.click.coords;
             roi = expmt.meta.roi;
-            
+
             switch b
-                
+
                 % case for left-click
                 case 1
                     r = getrect(handles.axes_handle);
                     if r(3) > 0.1*median(roi.bounds(3)) &&...
                             r(4) > 0.1*median(roi.bounds(4))
-                        
+
                         roi.bounds = [roi.bounds; r];
                         r(3) = r(1) + r(3);
                         r(4) = r(2) + r(4);
-                        
+
                         switch roi.mode
                             case 'auto'
                                 roi = addROI(roi, r, expmt);
@@ -2747,15 +2749,15 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                                     'grid ROI mode only supports manual subtraction';...
                                     'select Detect ROIs to manually add a grid'};
                                 gui_notify(msg, handles.disp_note);
-                        end        
+                        end
                     end
                 % case for right-click
                 case 3
-                    
+
                     % check to see if click occured in ROI
                     roi_num = assignROI(c(1:2), expmt);
                     idx = roi_num{1};
-                    
+
                     % delete targeted ROI
                     if idx
                         roi = subtractROI(roi, idx, expmt);
@@ -2770,12 +2772,12 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
                         end
                     end
             end
-            
+
             % remove click data
             handles.gui_fig.UserData = rmfield(handles.gui_fig.UserData,'click');
             handles.view_menu.UserData.hBounds = ...
                 handles.view_menu.UserData.hBounds(isvalid(handles.view_menu.UserData.hBounds));
-            
+
             % re-draw ROIs
             expmt.meta.roi = roi;
             feval(handles.view_roi_bounds_menu.Callback,...
@@ -2795,7 +2797,7 @@ if isfield(expmt.meta.roi,'n') && expmt.meta.roi.n
         handles.view_roi_bounds_menu,[]);
     feval(handles.view_roi_num_menu.Callback,...
         handles.view_roi_num_menu,[]);
-    
+
 else
     return;
 end
@@ -2914,7 +2916,7 @@ wo = 0.39;
 hb = round([h*hs h*(1-hs)]);
 wb = round([wo*w:w*(1-wo)]);
 
-for i = 1:length(wb)   
+for i = 1:length(wb)
     ps(hb(1)+floor(i/1.5):hb(2)-floor(i/1.5),wb(i),:) = 0;
 end
 
@@ -3027,7 +3029,7 @@ function remove_ROI_pushbutton_Callback(hObject, eventdata, handles)
 if handles.add_ROI_pushbutton.UserData.nGrids > 1
     handles = update_grid_UI(handles,'subtract',hObject.UserData);
 else
-   handles.add_ROI_pushbutton.UserData.nGrids = 0; 
+   handles.add_ROI_pushbutton.UserData.nGrids = 0;
 end
 
 guidata(handles.add_ROI_pushbutton,handles);
@@ -3125,16 +3127,16 @@ end
 
 expmt = getappdata(handles.gui_fig,'expmt');
 if isfield(handles.gui_fig.UserData,'cenText') && ishghandle(handles.gui_fig.UserData.cenText(1))
-    
+
     switch hObject.Checked
         case 'on'
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
     end
-    
+
 elseif isfield(expmt.meta.roi,'num_traces')
- 
+
     n = sum(expmt.meta.roi.num_traces);
     c = zeros(n,1);
     handles.gui_fig.UserData.cenText = text(c,c,'','Color','m',...
@@ -3144,7 +3146,7 @@ elseif isfield(expmt.meta.roi,'num_traces')
             set(handles.gui_fig.UserData.cenText,'Visible','on');
         case 'off'
             set(handles.gui_fig.UserData.cenText,'Visible','off');
-    end   
+    end
 else
     msg = {'cannot display centroid numbers';'no traces initialized'};
     gui_notify(msg,handles.disp_note);
@@ -3372,7 +3374,7 @@ function reg_preview_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% preview projector mapped ROI boundaries 
+% preview projector mapped ROI boundaries
 function proj_roi_view_Callback(hObject, eventdata, handles)
 
 % load expmt
@@ -3395,7 +3397,7 @@ fName = 'projector_fit.mat';
 if ~exist(reg_dir,'dir') == 7 ||~exist([reg_dir fName],'file') == 2
     errordlg(sprintf('Projector registration not detected in:\n %s%s',...
         reg_dir,fName));
-    return  
+    return
 end
 
 % ensure that ROIs are detected
@@ -3449,7 +3451,7 @@ chk = get(hObject,'checked');
 if strcmp(chk,'off')
     set_display_mode(handles.display_menu,'composite');
 end
-    
+
 
 
 % --------------------------------------------------------------------
