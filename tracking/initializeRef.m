@@ -19,7 +19,8 @@ elseif strcmp(imh.CDataMapping,'direct')
 end
 
 % enable display adjustment and set set the view to thresholded by default
-colormap('gray');
+
+       colormap(cmsat());
 set_display_mode(gui_handles.display_menu,'reference');
 gui_handles.accept_track_thresh_pushbutton.Value = 0;
 

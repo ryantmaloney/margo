@@ -17,11 +17,11 @@ for i=1:numel(dev_status)
         case 'open'
             [dev, com_settings, ~] = load_com_settings(dev, i, com_settings);
             if strcmpi(dev.status,'closed')
-               fopen(dev); 
+               fopen(dev);
             end
         case 'closed'
             if strcmpi(dev.status,'open')
-               fclose(dev); 
+               fclose(dev);
             end
     end
     expmt.hardware.COM.status{i} = dev.status;
@@ -48,7 +48,7 @@ expmt = trim_fields(expmt);
 if isfield(trackDat,'fields')
     ff = trackDat.fields;
     trackDat = initializeTrackDat(expmt);
-    
+
     % enforce minimum mandatory fields
     mandatory_fields = {'centroid';'time';'dropped_frames'};
     missing_ff = cellfun(@(mf) ~any(strcmpi(mf,ff)),mandatory_fields);
@@ -65,7 +65,8 @@ expmt.meta.roi.cam_dist = ...
         (expmt.meta.roi.centers(:,2)-cam_center(:,2)).^2);
 
 % set colormap and enable display control
-colormap('gray');
+
+       colormap(cmsat());
 set_display_mode(gui_handles.display_menu,'raw');
 
 if strcmp(expmt.meta.source,'camera') && ~isvalid(expmt.hardware.cam.vid)
@@ -90,7 +91,7 @@ end
 %% update de-bivort monitor server
 
 if isfield(gui_handles,'deviceID')
-    
+
     webop = weboptions('Timeout',0.65);
     status=true;
     try
@@ -175,8 +176,8 @@ trackDat.fields = expmt.meta.fields;
 
 % generate file ID for files to write
 for i = 1:length(trackDat.fields)
-    
-    expmt.data.(trackDat.fields{i}).path = ...                    
+
+    expmt.data.(trackDat.fields{i}).path = ...
         [expmt.meta.rawdir expmt.meta.date '_' trackDat.fields{i} '.bin'];
     if numel(expmt.data.(trackDat.fields{i}).path) > 260
         error(['RAW DATA file path exceeds maximum allowed length. '...
@@ -190,7 +191,7 @@ for i = 1:length(trackDat.fields)
     end
     % open fileID with write permission
     expmt.data.(trackDat.fields{i}).fID = ...
-        fopen(expmt.data.(trackDat.fields{i}).path,'W');         
+        fopen(expmt.data.(trackDat.fields{i}).path,'W');
 end
 
 % save current parameters to .mat file prior to experiment
@@ -211,7 +212,7 @@ elseif isfield(trackDat,'video_index') || ...
         any(strcmpi('video_index',expmt.meta.fields)) || ...
         any(strcmpi('video_index',trackDat.fields)) || ...
         (isfield(expmt.meta,'video_out') && ~expmt.meta.video_out.subsample)
-    
+
     % remove video index from raw data output if video is not recorded
     expmt.meta.fields(strcmpi('video_index',expmt.meta.fields)) = [];
     trackDat.fields(strcmpi('video_index',trackDat.fields)) = [];
@@ -240,4 +241,3 @@ tic;
 trackDat.tPrev = toc;
 trackDat.lastFrame = false;
 gui_notify('tracking initialized',gui_handles.disp_note);
-

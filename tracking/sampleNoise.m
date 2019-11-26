@@ -12,7 +12,8 @@ gui_notify('sampling imaging noise',gui_handles.disp_note);
 gui_fig = gui_handles.gui_fig;
 imh = findobj(gui_handles.axes_handle,'-depth',3,'Type','image');   % image handle
 
-colormap('gray');
+
+       colormap(cmsat());
 set_display_mode(gui_handles.display_menu,'threshold');
 
 

@@ -22,7 +22,7 @@ function varargout = margo(varargin)
 
 % Edit the above text to modify the response to help margo
 
-% Last Modified by GUIDE v2.5 30-Mar-2019 14:13:41
+% Last Modified by GUIDE v2.5 09-Oct-2019 11:49:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -32,6 +32,7 @@ gui_State = struct('gui_Name',       mfilename, ...
                    'gui_OutputFcn',  @margo_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
+               
                
 
 if nargin && ischar(varargin{1})
@@ -281,7 +282,10 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
             bg_color = handles.gui_fig.Color;
             im = ones(9,16).*bg_color(1);
             handles.hImage = imagesc(im);
-            colormap('gray');
+            
+                           
+
+            colormap(cmsat());
             handles.axes_handle.CLim = [0 1];
             set(handles.axes_handle,'Xtick',[],'Ytick',[],'XLabel',[],'YLabel',[],...
                 'XColor',bg_color,'YColor',bg_color);
@@ -330,7 +334,9 @@ if ~isempty(expmt.hardware.cam) && isstruct(expmt.hardware.cam) ...
         expmt.parameters.max_trace_duration = ceil(frame_rate*0.5);
         
         % adjust aspect ratio of plot to match camera
-        colormap('gray');
+                       
+
+        colormap(cmsat());
         tic
         im = [];
         trackDat = initializeTrackDat(expmt);
@@ -516,7 +522,9 @@ switch get(hObject,'value')
                 delete(findobj(handles.axes_handle,'-depth',3,'Type','image'));
                 handles.hImage = ...
                     imagesc('Parent',handles.axes_handle,'CData',trackDat.im);
-                colormap(handles.axes_handle,'gray');
+                               
+
+                colormap(handles.axes_handle,sat);
                 
             end
             
@@ -563,12 +571,14 @@ if ~iscell(com_str)
 end
 
 if ~strcmpi(com_str{hObject.Value},'No COM detected')
-    if strcmp(expmt.hardware.COM.light.status,'open')
-        fclose(expmt.hardware.COM.light);
-    end
-    delete(expmt.hardware.COM.light);
-    expmt.hardware.COM.light = serial(com_str{hObject.Value});
+  disp('Bug is here')  
+% %     if strcmp(expmt.hardware.COM.light.status,'open')
+% %         fclose(expmt.hardware.COM.light);
+% %     end
+     delete(expmt.hardware.COM.light);
+     expmt.hardware.COM.light = serial(com_str{hObject.Value});
 end
+
 setappdata(handles.gui_fig,'expmt',expmt);
 guidata(hObject,handles);
 
@@ -2034,7 +2044,9 @@ if isfield(expmt.meta.video,'vid')
     if hObject.Value
         
         % adjust aspect ratio of plot to match camera
-        colormap('gray');
+                       
+
+        colormap(cmsat());
         if isfield(expmt.meta.video,'fID')
             vh = expmt.meta.video.res(1);
             vw = expmt.meta.video.res(2);
@@ -3455,3 +3467,27 @@ function com_settings_menu_Callback(hObject, eventdata, handles)
 
 expmt = getappdata(handles.gui_fig,'expmt');
 serial_COM_settings_subgui(expmt);
+
+
+% --- Executes during object creation, after setting all properties.
+function axes1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to axes1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate axes1
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over Cam_preview_togglebutton.
+function Cam_preview_togglebutton_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to Cam_preview_togglebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function Cam_preview_togglebutton_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Cam_preview_togglebutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called

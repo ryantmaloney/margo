@@ -124,7 +124,7 @@ reset(expmt);
 if nBatch>1 && opt.handedness
     weight = NaN(expmt.meta.num_traces,nBatch);
     for i = 1:nBatch
-        weight(:,i) = sum(tmp(i).include,1);
+        weight(:,i) = sum(tmp(i).include,2);
     end
     weight = weight ./ repmat(sum(weight,2),1,nBatch);
     

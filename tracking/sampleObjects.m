@@ -1,5 +1,5 @@
 function [expmt] = sampleObjects(gui_handles, expmt)
-% 
+%
 % Samples the background noise distribution prior to imaging for the
 % purpose of determining when to force reset background reference images.
 % For the sampling to accurate, it is important for the tracking during the
@@ -9,7 +9,8 @@ function [expmt] = sampleObjects(gui_handles, expmt)
 
 gui_notify('sampling imaging noise',gui_handles.disp_note);
 
-colormap('gray');
+
+       colormap(cmsat());
 set(gui_handles.display_menu.Children,'Enable','on');
 set(gui_handles.display_menu.Children,'Checked','off');
 set(gui_handles.display_threshold_menu,'Checked','on');
@@ -63,17 +64,17 @@ while sample_ct < n;
 
     % track objects and sort to ROIs
     [trackDat] = autoTrack(trackDat,expmt,gui_handles);
-    
+
     if ~exist('area_thresh','var') || isnan(area_thresh)
         area_thresh = nanmedian(trackDat.area);
     end
-    
+
     % identify objects with good separation from background
     extract = trackDat.area > area_thresh;
     if any(extract)
         [obj_ims, bg_ims] = ...
             extractSamples(trackDat, expmt, extract, sample_window);
-        
+
         if numel(obj_ims) + sample_ct > n
             range = 1:n-sample_ct;
         else
@@ -83,10 +84,11 @@ while sample_ct < n;
         sample_bg(sample_ct + range) = bg_ims(range);
         sample_ct = sample_ct + range(end);
         
+
         sprintf('sample count:\t %i \t of \t %i\n',sample_ct,n)
-        
+
     end
-    
+
 
     %Update display if display tracking is ON
     if gui_handles.display_menu.UserData ~= 5
@@ -107,7 +109,7 @@ while sample_ct < n;
    diffim = (trackDat.ref.im - expmt.meta.vignette.im) - ...
        (trackDat.im - expmt.meta.vignette.im);
    thresh_im = diffim(:) > gui_handles.track_thresh_slider.Value;
-   
+
 end
 
 switch expmt.meta.source
@@ -128,4 +130,3 @@ expmt.meta.noise.mean = nanmean(pixelDist);
 expmt.meta.noise.roi_dist = roiDist;
 expmt.meta.noise.roi_std = nanstd(roiDist(roiDist>4));
 expmt.meta.noise.roi_mean = nanmean(roiDist(roiDist>4));
-

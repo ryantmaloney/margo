@@ -9,7 +9,8 @@ function [expmt]=gridROIs(gui_handles, expmt)
 
 warning off MATLAB:structOnObject
 clearvars -except gui_handles expmt
-colormap('gray')
+
+colormap(cmsat())
 
 gui_notify('running ROI detection',gui_handles.disp_note);
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'off';
@@ -88,7 +89,7 @@ if nGrids > 0 && ~isempty(hAdd.UserData.grid(1).polypos)
     end
 else
     % prompt user to draw new rectangle
-    [gui_handles,hPatch]=drawGrid(1,gui_handles); 
+    [gui_handles,hPatch]=drawGrid(1,gui_handles);
     if isempty(hPatch)
         % hide the grid settings panel
         gui_handles.grid_ROI_uipanel.Visible = 'off';
@@ -117,11 +118,11 @@ trackDat.t=0;
 
 
 while ~gui_handles.accept_ROI_thresh_pushbutton.Value
-    
+
     tic
     % query next frame and optionally correct lens distortion
     [trackDat,expmt] = autoFrame(trackDat,expmt,gui_handles);
-    
+
     % force user to draw grid if last grid is deleted
     if gui_handles.add_ROI_pushbutton.UserData.nGrids == 0
         if ~isempty(hPatch)
@@ -131,7 +132,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         delete(gui_handles.add_ROI_pushbutton.UserData.grid(1).hp);
 
         % prompt user to draw new rectangle
-        [gui_handles,hPatch]=drawGrid(1,gui_handles); 
+        [gui_handles,hPatch]=drawGrid(1,gui_handles);
         if isempty(hPatch)
             % hide the grid settings panel
             gui_handles.grid_ROI_uipanel.Visible = 'off';
@@ -150,15 +151,15 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         delete(hPatch(length(hPatch)));
         hPatch = hPatch(1:length(hPatch)-1);
     elseif nGrids < gui_handles.add_ROI_pushbutton.UserData.nGrids
-        
+
         % draw new grid
         [gui_handles, hp]=...
             drawGrid(gui_handles.add_ROI_pushbutton.UserData.nGrids,gui_handles);
-        
+
         if ~isempty(hp)
             nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
             hPatch(nGrids) = hp;
-            
+
             % initialize starting row/col dimensions and interactible polygon coords
             old_dim(nGrids) = ...
                 {[hAdd.UserData.grid(nGrids).nRows ...
@@ -173,10 +174,10 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         end
     end
     nGrids = gui_handles.add_ROI_pushbutton.UserData.nGrids;
-    
+
     % update data for all grids
     for i=1:nGrids
-    
+
         % get ui rectangle position and infer well centers and radii
         pos = getPosition(gui_handles.add_ROI_pushbutton.UserData.grid(i).hp);
         nRow = hAdd.UserData.grid(i).nRows;
@@ -189,7 +190,7 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
         if any(old_dim{i}~=[nRow nCol]) || ...
                 ~strcmp(hAdd.UserData.grid(i).shape,old_shape{i}) || ...
                 old_scale(i) ~= scale
-            
+
             % remove old patch and draw now one if dimensions change
             delete(hPatch(i));
             switch hAdd.UserData.grid(i).shape
@@ -204,12 +205,12 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
                         'EdgeColor','r','Parent',gui_handles.axes_handle);
             end
             uistack(hPatch(i),'down');
-            
+
             % update current dimensions
             old_dim(i) = {[nRow nCol]};
             old_shape(i) = {hAdd.UserData.grid(i).shape};
             old_scale(i) = hAdd.UserData.grid(i).scale;
-        
+
         elseif any(old_coords{i}(:)~=pos(:))
             old_coords(i) = {pos};
             switch hAdd.UserData.grid(i).shape
@@ -222,16 +223,16 @@ while ~gui_handles.accept_ROI_thresh_pushbutton.Value
                     hPatch(i).YData = YData;
             end
         end
-        
+
     end
-    
+
     % update the display
     autoDisplay(trackDat, expmt, imh, gui_handles);
 
     % Report frames per sec to GUI
     set(gui_handles.edit_frame_rate,'String',num2str(round(1/toc)));
     drawnow limitrate
-    
+
 end
 
 %%
@@ -253,5 +254,3 @@ expmt.parameters.sort_mode = 'bounds';
 
 gui_handles.auto_detect_ROIs_pushbutton.Enable = 'on';
 gui_notify([num2str(size(expmt.meta.roi.centers,1)) ' ROIs detected'],gui_handles.disp_note);
-
-

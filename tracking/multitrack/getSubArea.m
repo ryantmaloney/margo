@@ -1,7 +1,8 @@
 function [sub_area, sub_length] = getSubArea(erode_ims, ref)
 % initialize graphics handles
 ih = imagesc(ref);
-colormap('gray');
+
+       colormap(cmsat());
 hold on
 init_cen = cat(1,ROI_cen{:});
 ph = plot(init_cen(:,1),init_cen(:,2), 'ro');

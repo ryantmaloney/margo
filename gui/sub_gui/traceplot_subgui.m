@@ -119,7 +119,7 @@ for i=1:6
 end
 
 % Choose default command line output for traceplot_subgui
-colormap(handles.trace_fig,'gray');
+colormap(handles.trace_fig,cmsat());
 handles.output = hObject;
 
 % Update handles structure
@@ -299,7 +299,7 @@ new_max(isnan(new_max) | ~(new_max>0)) = 1;
 update_spd_ylim(new_max,cat(1,spd_axes{:}));
 
 clear s x y
-colormap(ah,'gray');
+colormap(ah,cmsat());
 % update current roi number
 eb.UserData = roi;
 

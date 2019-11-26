@@ -35,15 +35,15 @@ end
 im = nextFrame(expmt.meta.video, gui_handles);
 if size(im,3) > 1
     im = im(:,:,1);
-end   
+end
 if ~isfield(gui_handles,'hImage') || ~isfield(gui_handles.hImage,'CData')
     gui_handles.hImage = imagesc(im,'Parent',gui_handles.axes_handle);
     set(gui_handles.axes_handle,'XTick',[],'YTick',[]);
-    colormap(gui_handles.axes_handle,'gray');
+
+    colormap(gui_handles.axes_handle, cmsat());
     drawnow
 else
     gui_handles.hImage.CData = im;
-    colormap(gui_handles.axes_handle,'gray');
+    colormap(gui_handles.axes_handle, cmsat());
     drawnow
 end
-    

@@ -1,6 +1,6 @@
 function [trackDat,expmt] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 %   Updates the GUI display with the current frame image (trackDat.im)
-% 
+%
 %   Inputs
 %
 %   trackDat    struct updated with frame to frame tracking data, and holds
@@ -8,14 +8,14 @@ function [trackDat,expmt] = autoDisplay(trackDat, expmt, im_handle, gui_handles)
 %               reference image data (trackDat.ref.im)
 %
 %   expmt       master struct containing experiment meta data, parameters,
-%               and hardware settings 
+%               and hardware settings
 %
 %   gui_handles struct containing handles for all GUI objects
 %
 %   Outputs
 %
 %   trackDat    updated with lastFrame flag if pause/stop
-%               
+%
 %   expmt       updated with closed files if pause/stop
 
 
@@ -26,7 +26,7 @@ active_disp = disp_menu.UserData;
 switch active_disp
 
     % raw image
-    case 'raw'         
+    case 'raw'
         im_handle.CData = trackDat.im;
         if strcmp(im_handle.CDataMapping,'direct')
             im_handle.CDataMapping = 'scaled';
@@ -34,6 +34,7 @@ switch active_disp
         if any(gui_handles.axes_handle.CLim ~= [0 255])
             gui_handles.axes_handle.CLim = [0 255];
         end
+
 
     % difference image
     case 'difference'
@@ -70,13 +71,13 @@ switch active_disp
             if strcmp(im_handle.CDataMapping,'direct')
                 im_handle.CDataMapping = 'scaled';
             end
-        else 
+        else
             set_display_mode(disp_menu,'reference','Disable',true);
         end
         if any(gui_handles.axes_handle.CLim ~= [0 255])
             gui_handles.axes_handle.CLim = [0 255];
         end
-        
+
     case 'composite'
         if isfield(trackDat,'thresh_im')
             R = trackDat.im;
@@ -93,7 +94,7 @@ switch active_disp
         else
             set_display_mode(disp_menu,'composite','Disable',true);
         end
-        
+
     case 'none'
         if isempty(gui_handles.display_none_menu.UserData)
             msg = 'Display disabled';
@@ -121,7 +122,7 @@ if ~strcmp(active_disp,'none')
         hsv_base = 360;                         % hsv red
         hsv_targ = 240;                         % hsv blue
         color_scale = 1 - hsv_targ/hsv_base;
-        
+
         % initialize indicator if necessary
         if ~isfield(trackDat,'hRefCirc') || ~ishghandle(trackDat.hRefCirc(1))
             hold(gui_handles.axes_handle,'on');
@@ -133,7 +134,7 @@ if ~strcmp(active_disp,'none')
             trackDat.hRefCirc.CData = color;
             hold(gui_handles.axes_handle,'off');
         end
-        
+
         % Update ref number color indicator
         hue = 1-color_scale.*trackDat.ref.ct./expmt.parameters.ref_depth;
         hsv_color = ones(numel(hue),3);
@@ -160,18 +161,18 @@ if ~strcmp(active_disp,'none')
         end
     end
     if ~isempty(gui_handles.display_none_menu.UserData)
-       cellfun(@(h) delete(h),gui_handles.display_none_menu.UserData); 
+       cellfun(@(h) delete(h),gui_handles.display_none_menu.UserData);
        gui_handles.display_none_menu.UserData = [];
     end
 end
 
 % force immediate screen drawing and callback evaluation
-drawnow limitrate                 
+drawnow limitrate
 
 % listen for gui pause/unpause
 while gui_handles.pause_togglebutton.UserData.Value || ...
         gui_handles.stop_pushbutton.UserData.Value
-    
+
     [expmt,trackDat.tPrev,exit] = updatePauseStop(trackDat,expmt,gui_handles);
     if exit
         trackDat.lastFrame = true;
@@ -180,7 +181,7 @@ while gui_handles.pause_togglebutton.UserData.Value || ...
 end
 if isfield(gui_handles.pause_togglebutton.UserData,'pause_note')
    cellfun(@(h) delete(h), ...
-       gui_handles.pause_togglebutton.UserData.pause_note); 
+       gui_handles.pause_togglebutton.UserData.pause_note);
 end
 
 
@@ -196,6 +197,3 @@ elseif ~isempty(h.String)
     h.String = '';
     h.Position = pos{:};
 end
-
-
-

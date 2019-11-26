@@ -23,7 +23,8 @@ ulim = v(round(0.95*length(v)));
 
 %get activity filter
 a=~isnan(da);
-trialnum_thresh = 40;
+whos a
+trialnum_thresh = min(40, size(a, 2)-1);
 sampling =(squeeze(sum(sum(a(:,1:trialnum_thresh,:))))./(size(da,1)*size(da,2)));
 active = nTrials>trialnum_thresh & sampling > 0.01;
 expmt.meta.Optomotor.index = opto_index;

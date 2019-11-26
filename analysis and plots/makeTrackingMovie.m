@@ -60,7 +60,7 @@ fh.Name = 'Video Preview';
 
 imh = image(fr);
 imh.CDataMapping = 'scaled';
-colormap('gray');
+       colormap(cmsat());
 ah = gca;
 ah.Units = 'normalized';
 ah.Position = [0 0 1 1];
@@ -89,7 +89,7 @@ ct = fr_offset;
 fprintf('first centroids detected in frame %i\n', ct)
 
 while ct < expmt.meta.num_frames
-    
+
     if mod(ct,1000)==0
         fprintf('processing frame\t %i\t of\t %i\n',ct,expmt.meta.num_frames)
     end
@@ -99,7 +99,7 @@ while ct < expmt.meta.num_frames
         fr = fr(:,:,2);
     end
     imh.CData = fr;
-    
+
     % draw orientation data
     switch mode
         case 'centroid'
@@ -107,7 +107,7 @@ while ct < expmt.meta.num_frames
         case 'orientation'
             handles = draw_orientation_ellipse(expmt, ct, handles, options);
     end
-    
+
     drawnow
     im_out = getframe(ah);
     writeVideo(wVid,im_out.cdata);

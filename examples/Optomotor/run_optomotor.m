@@ -79,6 +79,11 @@ scor(:,[2 4]) = [scor(:,2)-sbbuf, scor(:,4)+sbbuf];
 
 % Determine stimulus size
 pin_sz=round(nanmean(nanmean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)]))*4);
+if pin_sz<0
+   disp('Pin_sz was negative, taking absolute value');
+   pin_sz=abs(pin_sz);
+end
+
 nCycles = expmt.parameters.num_cycles;            % num dark-light cycles in 360 degrees
 mask_r = expmt.parameters.mask_r;                 % radius of center circle dark mask (as fraction of stim_size)
 ang_vel = expmt.parameters.ang_per_frame;         % angular velocity of stimulus (degrees/frame)
@@ -92,7 +97,6 @@ stim.bounds = [imcenter(2)-subim_r imcenter(1)-subim_r imcenter(2)+subim_r imcen
 ssz_x = stim.bounds(3)-stim.bounds(1)+1;
 ssz_y = stim.bounds(4)-stim.bounds(2)+1;
 
-
 % Initialize source rect and scaling factors
 stim.bs_src = [0 0 ssz_x/2 ssz_y/2];
 stim.cen_src = CenterRectOnPointd(stim.bs_src,ssz_x/2,ssz_y/2);
@@ -101,7 +105,6 @@ stim.scale(:,1) = (ssz_x/2)./(scor(:,3)-scor(:,1));
 stim.scale(:,2) = (ssz_y/2)./(scor(:,4)-scor(:,2));
 
 %% Slow phototaxis specific parameters
-
 
 trackDat.local_spd = NaN(15,nROIs);
 trackDat.prev_ori = NaN(nROIs,1);
@@ -139,6 +142,8 @@ switch expmt.parameters.stim_mode
         expmt.meta.sweep.t = 0;
 end
 
+name=strcat(string(datetime('now', 'Format','yyyy-MM-dd-HH_mm')), 'stim');
+save(name, 'stim', 'pin_sz', 'nCycles', 'mask_r', 'contrast');
 
 %% Main Experimental Loop
 
@@ -172,11 +177,10 @@ while ~trackDat.lastFrame
     % update the display
     trackDat = autoDisplay(trackDat, expmt, imh, gui_handles);
 
-    
 end
 
-
-
+name=strcat(string(datetime('now', 'Format','yyyy-MM-dd-HH_mm')), 'stim2');
+save(name, 'trackDat', 'expmt');
 
 function updateText(h,pos,val)
 

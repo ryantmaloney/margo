@@ -34,6 +34,9 @@ stim.sz=round(nanmean(nanmean([scor(:,3)-scor(:,1) scor(:,4)-scor(:,2)])));
 src_edge_length = stim.sz;
 stim.sz=ceil(sqrt(stim.sz^2+stim.sz^2));
 
+
+
+
 % Initialize the stimulus image
 stim.im = zeros(stim.sz);
 stim.im(:,1:10)=1;
@@ -50,6 +53,10 @@ stim.Tex = Screen('MakeTexture', expmt.hardware.screen.window, stim.im);
 stim.corners = scor;
 stim.centers = scen;
 
+disp('saving')
+save('previewROIs', 'scor', 'rcor', 'scen', 'rcen', 'stim');
+whos
+
 % Pass photo stimulation textures to screen
 scr = expmt.hardware.screen;
 Screen('DrawTextures', scr.window, stim.Tex, stim.source', ...
@@ -57,3 +64,5 @@ Screen('DrawTextures', scr.window, stim.Tex, stim.source', ...
 
 % Flip to the screen
 scr.vbl = Screen('Flip', scr.window,scr.vbl +(scr.waitframes - 0.5)* scr.ifi);
+disp('flipped test stimuli')
+end
