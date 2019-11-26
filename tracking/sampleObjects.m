@@ -83,7 +83,6 @@ while sample_ct < n;
         sample_obj(sample_ct + range) = obj_ims(range);
         sample_bg(sample_ct + range) = bg_ims(range);
         sample_ct = sample_ct + range(end);
-        
 
         sprintf('sample count:\t %i \t of \t %i\n',sample_ct,n)
 

@@ -46,6 +46,7 @@ end
 IR_intensity = str2double(get(handles.edit_IR_intensity,'string'));
 White_intensity = str2double(get(handles.edit_White_intensity,'string'));
 
+
 % Convert intensity percentage to uint8 PWM value 0-255
 expmt.hardware.light.infrared = uint8((IR_intensity/100)*255);
 expmt.hardware.light.white = uint8((White_intensity/100)*255);
