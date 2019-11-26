@@ -257,7 +257,7 @@ if isempty(imh)
     
     imh = image(trackDat.im,'Parent',gui_handles.axes_handle);
     % adjust aspect ratio of plot to match camera
-    colormap(gui_handles.axes_handle,'gray');       
+    colormap(gui_handles.axes_handle,cmsat());       
     gui_handles.hImage.CDataMapping = 'scaled';
 end
 
